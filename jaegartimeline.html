@@ -1,0 +1,1166 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Jaeger OTel Demo Project Timeline</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Lexend:wght@300;400;500;600;700&display=swap');
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Lexend', sans-serif;
+            background: white;
+            padding: 10px;
+            color: #333;
+            margin: 0;
+            height: 100vh;
+            overflow: hidden;
+        }
+        
+        .timeline-container {
+            width: 100vw;
+            height: 100vh;
+            margin: 0;
+            background: white;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .timeline-header {
+            background: linear-gradient(135deg, #2c3e50, #34495e);
+            color: white;
+            padding: 15px 20px;
+            text-align: center;
+            flex-shrink: 0;
+        }
+        
+        .timeline-header h1 {
+            font-size: 28px;
+            font-weight: 700;
+            margin-bottom: 8px;
+            text-decoration: underline;
+            text-decoration-thickness: 2px;
+        }
+        
+        .timeline-header p {
+            font-size: 16px;
+            opacity: 0.9;
+            font-weight: 400;
+        }
+        
+        .timeline-content {
+            display: flex;
+            flex-direction: column;
+            flex: 1;
+            overflow: hidden;
+        }
+        
+        .phase {
+            display: flex;
+            border-bottom: 1px solid #e0e0e0;
+            flex: 1;
+            min-height: 0;
+        }
+        
+        .phase:last-child {
+            border-bottom: none;
+        }
+        
+        .phase-header {
+            width: 220px;
+            background: linear-gradient(135deg, #3498db, #2980b9);
+            color: white;
+            padding: 15px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            position: relative;
+            flex-shrink: 0;
+        }
+        
+        .phase:nth-child(2n) .phase-header {
+            background: linear-gradient(135deg, #27ae60, #229954);
+        }
+        
+        .phase:nth-child(3n) .phase-header {
+            background: linear-gradient(135deg, #e74c3c, #c0392b);
+        }
+        
+        .phase:nth-child(4n) .phase-header {
+            background: linear-gradient(135deg, #f39c12, #e67e22);
+        }
+        
+        .phase:nth-child(5n) .phase-header {
+            background: linear-gradient(135deg, #9b59b6, #8e44ad);
+        }
+        
+        .phase:nth-child(6n) .phase-header {
+            background: linear-gradient(135deg, #1abc9c, #16a085);
+        }
+        
+        .phase:nth-child(7n) .phase-header {
+            background: linear-gradient(135deg, #34495e, #2c3e50);
+        }
+        
+        .phase-number {
+            font-size: 24px;
+            font-weight: 700;
+            margin-bottom: 8px;
+            color: #ffffff;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.3);
+        }
+        
+        .phase-title {
+            font-size: 16px;
+            font-weight: 600;
+            margin-bottom: 6px;
+            line-height: 1.3;
+            color: #ffffff;
+            text-decoration: underline;
+            text-decoration-thickness: 1px;
+        }
+        
+        .phase-dates {
+            font-size: 14px;
+            opacity: 0.95;
+            font-style: italic;
+            font-weight: 500;
+            color: #f8f9fa;
+        }
+        
+        .phase-content {
+            flex: 1;
+            display: flex;
+        }
+        
+        .outcomes, .deliverables, .metrics {
+            flex: 1;
+            padding: 12px 15px;
+            border-right: 1px solid #f0f0f0;
+            overflow-y: auto;
+            min-width: 0;
+        }
+        
+        .metrics {
+            border-right: none;
+        }
+        
+        .section-title {
+            font-size: 16px;
+            font-weight: 700;
+            color: #2c3e50;
+            margin-bottom: 12px;
+            text-transform: uppercase;
+            letter-spacing: 0.8px;
+            text-decoration: underline;
+            text-decoration-thickness: 2px;
+            text-underline-offset: 3px;
+        }
+        
+        .outcomes .section-title {
+            color: #2980b9;
+            text-decoration-color: #3498db;
+        }
+        
+        .deliverables .section-title {
+            color: #27ae60;
+            text-decoration-color: #2ecc71;
+        }
+        
+        .metrics .section-title {
+            color: #c0392b;
+            text-decoration-color: #e74c3c;
+        }
+        
+        .content-list {
+            list-style: none;
+            font-size: 14px;
+            line-height: 1.5;
+            font-weight: 400;
+        }
+        
+        .content-list li {
+            margin-bottom: 8px;
+            padding-left: 16px;
+            position: relative;
+            color: #2c3e50;
+        }
+        
+        .content-list li:before {
+            content: '●';
+            font-weight: bold;
+            position: absolute;
+            left: 0;
+            font-size: 16px;
+        }
+        
+        .outcomes .content-list li:before {
+            color: #3498db;
+        }
+        
+        .deliverables .content-list li:before {
+            color: #27ae60;
+        }
+        
+        .metrics .content-list li:before {
+            color: #e74c3c;
+        }
+        
+        .outcomes .content-list li {
+            color: #2c3e50;
+        }
+        
+        .outcomes .content-list li:hover {
+            color: #2980b9;
+            font-weight: 500;
+        }
+        
+        .deliverables .content-list li {
+            color: #2c3e50;
+        }
+        
+        .deliverables .content-list li:hover {
+            color: #27ae60;
+            font-weight: 500;
+        }
+        
+        .metrics .content-list li {
+            color: #2c3e50;
+        }
+        
+        .metrics .content-list li:hover {
+            color: #c0392b;
+            font-weight: 500;
+        }
+        
+        @media (max-width: 1200px) {
+            .phase-header {
+                width: 180px;
+            }
+            
+            .section-title {
+                font-size: 14px;
+            }
+            
+            .content-list {
+                font-size: 12px;
+            }
+            
+            .phase-number {
+                font-size: 20px;
+            }
+            
+            .phase-title {
+                font-size: 14px;
+            }
+            
+            .phase-dates {
+                font-size: 12px;
+            }
+        }
+        
+        @media (max-width: 900px) {
+            .phase {
+                flex-direction: column;
+            }
+            
+            .phase-header {
+                width: 100%;
+            }
+            
+            .phase-content {
+                flex-direction: column;
+            }
+            
+            .outcomes, .deliverables, .metrics {
+                border-right: none;
+                border-bottom: 1px solid #f0f0f0;
+                padding: 12px 15px;
+            }
+            
+            .metrics {
+                border-bottom: none;
+            }
+            
+            .section-title {
+                font-size: 14px;
+            }
+            
+            .content-list {
+                font-size: 12px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="timeline-container">
+        <div class="timeline-header">
+            <h1>Jaeger OTel Demo Project Timeline</h1>
+            <p>Complete roadmap from pre-selection to final delivery</p>
+        </div>
+        
+        <div class="timeline-content">
+            <div class="phase">
+                <div class="phase-header">
+                    <div class="phase-number">Phase 0</div>
+                    <div class="phase-title">Pre-selection & Familiarization</div>
+                    <div class="phase-dates">(Till Aug 27, 2025)</div>
+                </div>
+                <div class="phase-content">
+                    <div class="outcomes">
+                        <div class="section-title">Outcomes to Achieve</div>
+                        <ul class="content-list">
+                            <li>Build context on Jaeger + OTel Demo repos</li>
+                            <li>Gain trust with maintainers via significant PRs</li>
+                            <li>Learn & master required tech stack (Helm, K8s, OpenSearch, OTel Collector, OCI)</li>
+                        </ul>
+                    </div>
+                    <div class="deliverables">
+                        <div class="section-title">Deliverables</div>
+                        <ul class="content-list">
+                            <li>3–4 significant PRs (feature improvements, Helm/CI enhancements)</li>
+                            <li>Local OTel Demo setup notes</li>
+                            <li>Personal knowledge base of stack</li>
+                        </ul>
+                    </div>
+                    <div class="metrics">
+                        <div class="section-title">Success Metrics</div>
+                        <ul class="content-list">
+                            <li>PRs merged pre-selection</li>
+                            <li>OTel Demo deploys locally without errors</li>
+                            <li>Confident in all core technologies</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="phase">
+                <div class="phase-header">
+                    <div class="phase-number">Phase 1</div>
+                    <div class="phase-title">Planning & Success Criteria Alignment</div>
+                    <div class="phase-dates">(Aug 27 – Sept 7, 2025)</div>
+                </div>
+                <div class="phase-content">
+                    <div class="outcomes">
+                        <div class="section-title">Outcomes to Achieve</div>
+                        <ul class="content-list">
+                            <li>Define success metrics with mentors</li>
+                            <li>High-level architecture review</li>
+                            <li>Plan weekly milestones & CI approach</li>
+                        </ul>
+                    </div>
+                    <div class="deliverables">
+                        <div class="section-title">Deliverables</div>
+                        <ul class="content-list">
+                            <li>Approved architecture diagram & deployment plan</li>
+                            <li>Confirmed metrics & validation tests</li>
+                        </ul>
+                    </div>
+                    <div class="metrics">
+                        <div class="section-title">Success Metrics</div>
+                        <ul class="content-list">
+                            <li>Mentor sign-off on plan</li>
+                            <li>Ready to start deployment work</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="phase">
+                <div class="phase-header">
+                    <div class="phase-number">Phase 2</div>
+                    <div class="phase-title">Initial Cluster Setup & Core Deployment</div>
+                    <div class="phase-dates">(Sept 8 – Sept 21, 2025)</div>
+                </div>
+                <div class="phase-content">
+                    <div class="outcomes">
+                        <div class="section-title">Outcomes to Achieve</div>
+                        <ul class="content-list">
+                            <li>Create OKE cluster on OCI</li>
+                            <li>Deploy OTel Demo with Jaeger + OpenSearch</li>
+                        </ul>
+                    </div>
+                    <div class="deliverables">
+                        <div class="section-title">Deliverables</div>
+                        <ul class="content-list">
+                            <li>Helm manifests for namespace, OTel Collector, Jaeger, OpenSearch</li>
+                            <li>Working traces visible in Jaeger UI</li>
+                        </ul>
+                    </div>
+                    <div class="metrics">
+                        <div class="section-title">Success Metrics</div>
+                        <ul class="content-list">
+                            <li>OTel Demo running with traces appearing within ~30s</li>
+                            <li>Smoke tests pass</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="phase">
+                <div class="phase-header">
+                    <div class="phase-number">Phase 3</div>
+                    <div class="phase-title">Ingress & Public Exposure</div>
+                    <div class="phase-dates">(Sept 22 – Oct 5, 2025)</div>
+                </div>
+                <div class="phase-content">
+                    <div class="outcomes">
+                        <div class="section-title">Outcomes to Achieve</div>
+                        <ul class="content-list">
+                            <li>Implement path-based ingress for /otel-jaeger/ and related UIs</li>
+                            <li>Temporary subdomain fallback if required</li>
+                        </ul>
+                    </div>
+                    <div class="deliverables">
+                        <div class="section-title">Deliverables</div>
+                        <ul class="content-list">
+                            <li>Ingress manifests with TLS</li>
+                            <li>Public access to Jaeger, OTel Demo UI, load generator, OpenSearch Dashboards</li>
+                        </ul>
+                    </div>
+                    <div class="metrics">
+                        <div class="section-title">Success Metrics</div>
+                        <ul class="content-list">
+                            <li>All UIs accessible at demo.jaegertracing.io</li>
+                            <li>Latency & path correctness verified</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="phase">
+                <div class="phase-header">
+                    <div class="phase-number">Phase 4</div>
+                    <div class="phase-title">CI/CD Automation for Weekly Redeploys</div>
+                    <div class="phase-dates">(Oct 6 – Oct 13, 2025)</div>
+                </div>
+                <div class="phase-content">
+                    <div class="outcomes">
+                        <div class="section-title">Outcomes to Achieve</div>
+                        <ul class="content-list">
+                            <li>Build idempotent helm upgrade --install flow</li>
+                            <li>Add smoke-test validation step</li>
+                        </ul>
+                    </div>
+                    <div class="deliverables">
+                        <div class="section-title">Deliverables</div>
+                        <ul class="content-list">
+                            <li>GitHub Actions workflow for weekly redeploys</li>
+                            <li>Helm uninstall option</li>
+                        </ul>
+                    </div>
+                    <div class="metrics">
+                        <div class="section-title">Success Metrics</div>
+                        <ul class="content-list">
+                            <li>Automated redeploy works without errors</li>
+                            <li>Smoke tests pass after each deploy</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="phase">
+                <div class="phase-header">
+                    <div class="phase-number">Phase 5</div>
+                    <div class="phase-title">Midterm Checkpoint & Optimization</div>
+                    <div class="phase-dates">(Oct 14 – Oct 19, 2025)</div>
+                </div>
+                <div class="phase-content">
+                    <div class="outcomes">
+                        <div class="section-title">Outcomes to Achieve</div>
+                        <ul class="content-list">
+                            <li>Midterm review with mentors</li>
+                            <li>Optimize OpenSearch performance & stability</li>
+                        </ul>
+                    </div>
+                    <div class="deliverables">
+                        <div class="section-title">Deliverables</div>
+                        <ul class="content-list">
+                            <li>Resource tuning configs</li>
+                            <li>Updated documentation on sizing</li>
+                        </ul>
+                    </div>
+                    <div class="metrics">
+                        <div class="section-title">Success Metrics</div>
+                        <ul class="content-list">
+                            <li>Mentor approval at midterm</li>
+                            <li>No OOM/GC issues under load</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="phase">
+                <div class="phase-header">
+                    <div class="phase-number">Phase 6</div>
+                    <div class="phase-title">Security & Final Integration</div>
+                    <div class="phase-dates">(Oct 20 – Nov 16, 2025)</div>
+                </div>
+                <div class="phase-content">
+                    <div class="outcomes">
+                        <div class="section-title">Outcomes to Achieve</div>
+                        <ul class="content-list">
+                            <li>Secure OpenSearch & Dashboards (TLS, RBAC, Secrets)</li>
+                            <li>Document architecture & automation for public release</li>
+                            <li>Some security work may start earlier in parallel</li>
+                        </ul>
+                    </div>
+                    <div class="deliverables">
+                        <div class="section-title">Deliverables</div>
+                        <ul class="content-list">
+                            <li>Path-based ingress with TLS & optional basic auth</li>
+                            <li>Secrets in k8s Secrets</li>
+                            <li>Public documentation on Jaeger website</li>
+                        </ul>
+                    </div>
+                    <div class="metrics">
+                        <div class="section-title">Success Metrics</div>
+                        <ul class="content-list">
+                            <li>All services secure</li>
+                            <li>Docs live with architecture diagrams</li>
+                            <li>Final mentor sign-off</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="phase">
+                <div class="phase-header">
+                    <div class="phase-number">Phase 7</div>
+                    <div class="phase-title">Buffer & Final Delivery</div>
+                    <div class="phase-dates">(Nov 17 – Nov 25, 2025)</div>
+                </div>
+                <div class="phase-content">
+                    <div class="outcomes">
+                        <div class="section-title">Outcomes to Achieve</div>
+                        <ul class="content-list">
+                            <li>Handle unexpected delays</li>
+                            <li>Final polish & validation</li>
+                        </ul>
+                    </div>
+                    <div class="deliverables">
+                        <div class="section-title">Deliverables</div>
+                        <ul class="content-list">
+                            <li>Final tested deployment</li>
+                            <li>CI/CD logs & final documentation</li>
+                        </ul>
+                    </div>
+                    <div class="metrics">
+                        <div class="section-title">Success Metrics</div>
+                        <ul class="content-list">
+                            <li>Project meets all expected outcomes</li>
+                            <li>Maintainers confirm readiness for ongoing weekly redeploys</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html> -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Jaeger OTel Demo Project Timeline</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Lexend:wght@300;400;500;600;700&display=swap');
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Lexend', sans-serif;
+            background: white;
+            padding: 10px;
+            color: #333;
+            margin: 0;
+            height: 100vh;
+            overflow: hidden;
+        }
+        
+        .timeline-container {
+            width: 100vw;
+            height: 100vh;
+            margin: 0;
+            background: white;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .timeline-header {
+            background: linear-gradient(135deg, #2c3e50, #34495e);
+            color: white;
+            padding: 15px 20px;
+            text-align: center;
+            flex-shrink: 0;
+        }
+        
+        .timeline-header h1 {
+            font-size: 28px;
+            font-weight: 700;
+            margin-bottom: 8px;
+            text-decoration: underline;
+            text-decoration-thickness: 2px;
+        }
+        
+        .timeline-header p {
+            font-size: 16px;
+            opacity: 0.9;
+            font-weight: 400;
+        }
+        
+        .timeline-content {
+            display: flex;
+            flex-direction: column;
+            flex: 1;
+            overflow: hidden;
+        }
+        
+        .phase {
+            display: flex;
+            border-bottom: 1px solid #e0e0e0;
+            flex: 1;
+            min-height: 0;
+        }
+        
+        .phase:last-child {
+            border-bottom: none;
+        }
+        
+        .phase-header {
+            width: 220px;
+            background: linear-gradient(135deg, #3498db, #2980b9);
+            color: white;
+            padding: 15px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            position: relative;
+            flex-shrink: 0;
+        }
+        
+        .phase:nth-child(2n) .phase-header {
+            background: linear-gradient(135deg, #27ae60, #229954);
+        }
+        
+        .phase:nth-child(3n) .phase-header {
+            background: linear-gradient(135deg, #e74c3c, #c0392b);
+        }
+        
+        .phase:nth-child(4n) .phase-header {
+            background: linear-gradient(135deg, #f39c12, #e67e22);
+        }
+        
+        .phase:nth-child(5n) .phase-header {
+            background: linear-gradient(135deg, #9b59b6, #8e44ad);
+        }
+        
+        .phase:nth-child(6n) .phase-header {
+            background: linear-gradient(135deg, #1abc9c, #16a085);
+        }
+        
+        .phase:nth-child(7n) .phase-header {
+            background: linear-gradient(135deg, #34495e, #2c3e50);
+        }
+        
+        .phase-number {
+            font-size: 24px;
+            font-weight: 700;
+            margin-bottom: 8px;
+            color: #ffffff;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.3);
+        }
+        
+        .phase-title {
+            font-size: 16px;
+            font-weight: 600;
+            margin-bottom: 6px;
+            line-height: 1.3;
+            color: #ffffff;
+            text-decoration: underline;
+            text-decoration-thickness: 1px;
+        }
+        
+        .phase-dates {
+            font-size: 14px;
+            opacity: 0.95;
+            font-style: italic;
+            font-weight: 500;
+            color: #f8f9fa;
+        }
+        
+        .phase-content {
+            flex: 1;
+            display: flex;
+        }
+        
+        .outcomes, .deliverables, .metrics {
+            flex: 1;
+            padding: 18px 20px;
+            border-right: 1px solid #f0f0f0;
+            overflow-y: auto;
+            min-width: 0;
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-start;
+        }
+        
+        .metrics {
+            border-right: none;
+        }
+        
+        .section-title {
+            font-size: 18px;
+            font-weight: 700;
+            color: #2c3e50;
+            margin-bottom: 15px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            text-decoration: underline;
+            text-decoration-thickness: 2px;
+            text-underline-offset: 4px;
+            flex-shrink: 0;
+        }
+        
+        .outcomes .section-title {
+            color: #2980b9;
+            text-decoration-color: #3498db;
+        }
+        
+        .deliverables .section-title {
+            color: #27ae60;
+            text-decoration-color: #2ecc71;
+        }
+        
+        .metrics .section-title {
+            color: #c0392b;
+            text-decoration-color: #e74c3c;
+        }
+        
+        .content-list {
+            list-style: none;
+            font-size: 16px;
+            line-height: 1.6;
+            font-weight: 400;
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-evenly;
+        }
+        
+        .content-list li {
+            margin-bottom: 12px;
+            padding-left: 20px;
+            position: relative;
+            color: #2c3e50;
+            flex: 1;
+            display: flex;
+            align-items: center;
+        }
+        
+        .content-list li:before {
+            content: '●';
+            font-weight: bold;
+            position: absolute;
+            left: 0;
+            font-size: 18px;
+            top: 50%;
+            transform: translateY(-50%);
+        }
+        
+        .outcomes .content-list li:before {
+            color: #3498db;
+        }
+        
+        .deliverables .content-list li:before {
+            color: #27ae60;
+        }
+        
+        .metrics .content-list li:before {
+            color: #e74c3c;
+        }
+        
+        .outcomes .content-list li {
+            color: #2c3e50;
+        }
+        
+        .outcomes .content-list li:hover {
+            color: #2980b9;
+            font-weight: 500;
+        }
+        
+        .deliverables .content-list li {
+            color: #2c3e50;
+        }
+        
+        .deliverables .content-list li:hover {
+            color: #27ae60;
+            font-weight: 500;
+        }
+        
+        .metrics .content-list li {
+            color: #2c3e50;
+        }
+        
+        .metrics .content-list li:hover {
+            color: #c0392b;
+            font-weight: 500;
+        }
+        
+        @media (max-width: 1200px) {
+            .phase-header {
+                width: 180px;
+            }
+            
+            .section-title {
+                font-size: 16px;
+            }
+            
+            .content-list {
+                font-size: 14px;
+            }
+            
+            .phase-number {
+                font-size: 20px;
+            }
+            
+            .phase-title {
+                font-size: 14px;
+            }
+            
+            .phase-dates {
+                font-size: 12px;
+            }
+            
+            .content-list li {
+                margin-bottom: 10px;
+                padding-left: 18px;
+            }
+            
+            .content-list li:before {
+                font-size: 16px;
+            }
+        }
+        
+        @media (max-width: 900px) {
+            .phase {
+                flex-direction: column;
+            }
+            
+            .phase-header {
+                width: 100%;
+            }
+            
+            .phase-content {
+                flex-direction: column;
+            }
+            
+            .outcomes, .deliverables, .metrics {
+                border-right: none;
+                border-bottom: 1px solid #f0f0f0;
+                padding: 15px 18px;
+            }
+            
+            .metrics {
+                border-bottom: none;
+            }
+            
+            .section-title {
+                font-size: 16px;
+                margin-bottom: 12px;
+            }
+            
+            .content-list {
+                font-size: 14px;
+            }
+            
+            .content-list li {
+                margin-bottom: 8px;
+                flex: none;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="timeline-container">
+        <div class="timeline-header">
+            <h1>Jaeger OTel Demo Project Timeline</h1>
+            <p>Complete roadmap from pre-selection to final delivery</p>
+        </div>
+        
+        <div class="timeline-content">
+            <div class="phase">
+                <div class="phase-header">
+                    <div class="phase-number">Phase 0</div>
+                    <div class="phase-title">Pre-selection & Familiarization</div>
+                    <div class="phase-dates">(Till Aug 27, 2025)</div>
+                </div>
+                <div class="phase-content">
+                    <div class="outcomes">
+                        <div class="section-title">Outcomes to Achieve</div>
+                        <ul class="content-list">
+                            <li>Build context on Jaeger + OTel Demo repos</li>
+                            <li>Gain trust with maintainers via significant PRs</li>
+                            <li>Learn & master required tech stack (Helm, K8s, OpenSearch, OTel Collector, OCI)</li>
+                        </ul>
+                    </div>
+                    <div class="deliverables">
+                        <div class="section-title">Deliverables</div>
+                        <ul class="content-list">
+                            <li>3–4 significant PRs (feature improvements, Helm/CI enhancements)</li>
+                            <li>Local OTel Demo setup notes</li>
+                            <li>Personal knowledge base of stack</li>
+                        </ul>
+                    </div>
+                    <div class="metrics">
+                        <div class="section-title">Success Metrics</div>
+                        <ul class="content-list">
+                            <li>PRs merged pre-selection</li>
+                            <li>OTel Demo deploys locally without errors</li>
+                            <li>Confident in all core technologies</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="phase">
+                <div class="phase-header">
+                    <div class="phase-number">Phase 1</div>
+                    <div class="phase-title">Planning & Success Criteria Alignment</div>
+                    <div class="phase-dates">(Aug 27 – Sept 7, 2025)</div>
+                </div>
+                <div class="phase-content">
+                    <div class="outcomes">
+                        <div class="section-title">Outcomes to Achieve</div>
+                        <ul class="content-list">
+                            <li>Define success metrics with mentors</li>
+                            <li>High-level architecture review</li>
+                            <li>Plan weekly milestones & CI approach</li>
+                        </ul>
+                    </div>
+                    <div class="deliverables">
+                        <div class="section-title">Deliverables</div>
+                        <ul class="content-list">
+                            <li>Approved architecture diagram & deployment plan</li>
+                            <li>Confirmed metrics & validation tests</li>
+                        </ul>
+                    </div>
+                    <div class="metrics">
+                        <div class="section-title">Success Metrics</div>
+                        <ul class="content-list">
+                            <li>Mentor sign-off on plan</li>
+                            <li>Ready to start deployment work</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="phase">
+                <div class="phase-header">
+                    <div class="phase-number">Phase 2</div>
+                    <div class="phase-title">Initial Cluster Setup & Core Deployment</div>
+                    <div class="phase-dates">(Sept 8 – Sept 21, 2025)</div>
+                </div>
+                <div class="phase-content">
+                    <div class="outcomes">
+                        <div class="section-title">Outcomes to Achieve</div>
+                        <ul class="content-list">
+                            <li>Create OKE cluster on OCI</li>
+                            <li>Deploy OTel Demo with Jaeger + OpenSearch</li>
+                        </ul>
+                    </div>
+                    <div class="deliverables">
+                        <div class="section-title">Deliverables</div>
+                        <ul class="content-list">
+                            <li>Helm manifests for namespace, OTel Collector, Jaeger, OpenSearch</li>
+                            <li>Working traces visible in Jaeger UI</li>
+                        </ul>
+                    </div>
+                    <div class="metrics">
+                        <div class="section-title">Success Metrics</div>
+                        <ul class="content-list">
+                            <li>OTel Demo running with traces appearing within ~30s</li>
+                            <li>Smoke tests pass</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="phase">
+                <div class="phase-header">
+                    <div class="phase-number">Phase 3</div>
+                    <div class="phase-title">Ingress & Public Exposure</div>
+                    <div class="phase-dates">(Sept 22 – Oct 5, 2025)</div>
+                </div>
+                <div class="phase-content">
+                    <div class="outcomes">
+                        <div class="section-title">Outcomes to Achieve</div>
+                        <ul class="content-list">
+                            <li>Implement path-based ingress for /otel-jaeger/ and related UIs</li>
+                            <li>Temporary subdomain fallback if required</li>
+                        </ul>
+                    </div>
+                    <div class="deliverables">
+                        <div class="section-title">Deliverables</div>
+                        <ul class="content-list">
+                            <li>Ingress manifests with TLS</li>
+                            <li>Public access to Jaeger, OTel Demo UI, load generator, OpenSearch Dashboards</li>
+                        </ul>
+                    </div>
+                    <div class="metrics">
+                        <div class="section-title">Success Metrics</div>
+                        <ul class="content-list">
+                            <li>All UIs accessible at demo.jaegertracing.io</li>
+                            <li>Latency & path correctness verified</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="phase">
+                <div class="phase-header">
+                    <div class="phase-number">Phase 4</div>
+                    <div class="phase-title">CI/CD Automation for Weekly Redeploys</div>
+                    <div class="phase-dates">(Oct 6 – Oct 13, 2025)</div>
+                </div>
+                <div class="phase-content">
+                    <div class="outcomes">
+                        <div class="section-title">Outcomes to Achieve</div>
+                        <ul class="content-list">
+                            <li>Build idempotent helm upgrade --install flow</li>
+                            <li>Add smoke-test validation step</li>
+                        </ul>
+                    </div>
+                    <div class="deliverables">
+                        <div class="section-title">Deliverables</div>
+                        <ul class="content-list">
+                            <li>GitHub Actions workflow for weekly redeploys</li>
+                            <li>Helm uninstall option</li>
+                        </ul>
+                    </div>
+                    <div class="metrics">
+                        <div class="section-title">Success Metrics</div>
+                        <ul class="content-list">
+                            <li>Automated redeploy works without errors</li>
+                            <li>Smoke tests pass after each deploy</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="phase">
+                <div class="phase-header">
+                    <div class="phase-number">Phase 5</div>
+                    <div class="phase-title">Midterm Checkpoint & Optimization</div>
+                    <div class="phase-dates">(Oct 14 – Oct 19, 2025)</div>
+                </div>
+                <div class="phase-content">
+                    <div class="outcomes">
+                        <div class="section-title">Outcomes to Achieve</div>
+                        <ul class="content-list">
+                            <li>Midterm review with mentors</li>
+                            <li>Optimize OpenSearch performance & stability</li>
+                        </ul>
+                    </div>
+                    <div class="deliverables">
+                        <div class="section-title">Deliverables</div>
+                        <ul class="content-list">
+                            <li>Resource tuning configs</li>
+                            <li>Updated documentation on sizing</li>
+                        </ul>
+                    </div>
+                    <div class="metrics">
+                        <div class="section-title">Success Metrics</div>
+                        <ul class="content-list">
+                            <li>Mentor approval at midterm</li>
+                            <li>No OOM/GC issues under load</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="phase">
+                <div class="phase-header">
+                    <div class="phase-number">Phase 6</div>
+                    <div class="phase-title">Security & Final Integration</div>
+                    <div class="phase-dates">(Oct 20 – Nov 16, 2025)</div>
+                </div>
+                <div class="phase-content">
+                    <div class="outcomes">
+                        <div class="section-title">Outcomes to Achieve</div>
+                        <ul class="content-list">
+                            <li>Secure OpenSearch & Dashboards (TLS, RBAC, Secrets)</li>
+                            <li>Document architecture & automation for public release</li>
+                            <li>Some security work may start earlier in parallel</li>
+                        </ul>
+                    </div>
+                    <div class="deliverables">
+                        <div class="section-title">Deliverables</div>
+                        <ul class="content-list">
+                            <li>Path-based ingress with TLS & optional basic auth</li>
+                            <li>Secrets in k8s Secrets</li>
+                            <li>Public documentation on Jaeger website</li>
+                        </ul>
+                    </div>
+                    <div class="metrics">
+                        <div class="section-title">Success Metrics</div>
+                        <ul class="content-list">
+                            <li>All services secure</li>
+                            <li>Docs live with architecture diagrams</li>
+                            <li>Final mentor sign-off</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="phase">
+                <div class="phase-header">
+                    <div class="phase-number">Phase 7</div>
+                    <div class="phase-title">Buffer & Final Delivery</div>
+                    <div class="phase-dates">(Nov 17 – Nov 25, 2025)</div>
+                </div>
+                <div class="phase-content">
+                    <div class="outcomes">
+                        <div class="section-title">Outcomes to Achieve</div>
+                        <ul class="content-list">
+                            <li>Handle unexpected delays</li>
+                            <li>Final polish & validation</li>
+                        </ul>
+                    </div>
+                    <div class="deliverables">
+                        <div class="section-title">Deliverables</div>
+                        <ul class="content-list">
+                            <li>Final tested deployment</li>
+                            <li>CI/CD logs & final documentation</li>
+                        </ul>
+                    </div>
+                    <div class="metrics">
+                        <div class="section-title">Success Metrics</div>
+                        <ul class="content-list">
+                            <li>Project meets all expected outcomes</li>
+                            <li>Maintainers confirm readiness for ongoing weekly redeploys</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
